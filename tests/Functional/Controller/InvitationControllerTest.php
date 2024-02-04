@@ -37,14 +37,72 @@ class InvitationControllerTest extends WebTestCase
         $invitation->setCreatedAt(new \DateTime('+1 hour'));
         $invitation->setToken('test_token');
         $invitation->setStatus(AppConstants::SENT_INVITE);
+        $invitation->setEmail("ex@test.com");
         $invitation->setSender($user);
 
         $savedInvitation = $this->saveInvitation($invitation);
 
-        $client->request('GET', '/api/auth/invites/' . $savedInvitation->getId() . '/cancel');
+        $client->request('PATCH',  sprintf('/api/auth/invites/%s/cancel', $savedInvitation->getId()));
         $response = $client->getResponse();
 
-        $this->assertSame($savedInvitation->getStatus(), AppConstants::CANCEL_INVITE);
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $updatedInvitation = $entityManager->getRepository(Invitation::class)->findOneBy(['token' => $savedInvitation->getToken()]);
+
+        $this->assertSame($updatedInvitation->getStatus(), AppConstants::CANCEL_INVITE);
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertJson($response->getContent());
+        
+    }
+
+    public function testAcceptInvitation(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $date = new \DateTime('+1 hour');
+        $invitation = new Invitation();
+        $invitation->setExpiresAt($date);
+        $invitation->setToken('xxxtoken');
+        $invitation->setStatus(AppConstants::SENT_INVITE);
+        $invitation->setEmail("ex@test.com");
+        $invitation->setIsActive(true);
+        $invitation->setSender($user);
+
+        $savedInvitation = $this->saveInvitation($invitation);
+       
+        $client->request('PATCH',  sprintf('/public/invites/%s/accept', $savedInvitation->getToken()));
+        $response = $client->getResponse();
+
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $updatedInvitation = $entityManager->getRepository(Invitation::class)->findOneBy(['token' => $savedInvitation->getToken()]);
+
+        $this->assertSame($updatedInvitation->getStatus(), AppConstants::ACCEPT_INVITE);
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertJson($response->getContent());
+        
+    }
+
+    public function testDeclineInvitation(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+
+        $invitation = new Invitation();
+        $invitation->setExpiresAt(new \DateTime('+1 hour'));
+        $invitation->setToken('xxxtoken');
+        $invitation->setStatus(AppConstants::SENT_INVITE);
+        $invitation->setEmail("ex@test.com");
+        $invitation->setIsActive(true);
+        $invitation->setSender($user);
+
+        $savedInvitation = $this->saveInvitation($invitation);
+
+        $client->request('PATCH',  sprintf('/public/invites/%s/decline', $savedInvitation->getToken()));
+        $response = $client->getResponse();
+
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $updatedInvitation = $entityManager->getRepository(Invitation::class)->findOneBy(['token' => $savedInvitation->getToken()]);
+
+        $this->assertSame($updatedInvitation->getStatus(), AppConstants::DECLINE_INVITE);
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertJson($response->getContent());
         
@@ -70,10 +128,6 @@ class InvitationControllerTest extends WebTestCase
     private function saveInvitation(Invitation $invitation): Invitation
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
-
-        if (!$entityManager->contains($invitation->getSender())) {
-            $entityManager->persist($invitation->getSender());
-        }
 
         $entityManager->persist($invitation);
         $entityManager->flush();

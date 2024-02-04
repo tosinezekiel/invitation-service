@@ -46,7 +46,7 @@ class InvitationController extends AbstractController
         ]);
     }
 
-    #[Route('/api/auth/invites/{id}/cancel', methods: ['GET'])]
+    #[Route('/api/auth/invites/{id}/cancel', methods: ['PATCH'])]
     public function cancel(int $id): Response
     {
         $user = $this->getUser();
@@ -76,7 +76,7 @@ class InvitationController extends AbstractController
         try {
             $invitation = $this->invitationService->handleInvitation($token, false);
 
-            return $this->jsonSuccessResponse('Invitation accepted successfully.');
+            return $this->jsonSuccessResponse('Invitation declined successfully.');
 
         } catch (ExpiredResourceException $e) {
             return $this->jsonErrorResponse($e->getMessage(), [], $e->getStatusCode());

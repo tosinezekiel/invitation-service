@@ -110,7 +110,7 @@ class Invitation
         return $this;
     }
 
-    public function getExpiresAt(): DateTimeInterface
+    public function getExpiresAt(): ?DateTimeInterface
     {
         return $this->expiresAt;
     }

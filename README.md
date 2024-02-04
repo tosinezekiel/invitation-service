@@ -10,8 +10,8 @@ This is a REST API based invitation system developed in PHP. It allows a user (t
 
 ## Technologies Used
 
-- PHP
-- Symfony Framework
+- PHP 8
+- Symfony Framework 6.2
 - MySQL
 
 ## Setup
@@ -22,13 +22,12 @@ To run this project, you need to do the following:
 2. Install dependencies using Composer
 3. Configure your .env file for the database connection
 4. Run the project using Symfony server
-5. Run seeder php bin/console doctrine:fixtures:load 
+5. Run seeder `php bin/console doctrine:fixtures:load`
 
 # Endpoints
 
-
 1. POST /api/auth/invites
-2. GET /api/auth/invites/{id}/cancel
+2. PATCH /api/auth/invites/{id}/cancel
 3. PATCH /public/invites/{token}/accept
 4. PATCH /public/invites/{token}/decline
 5. POST /api/login/ -d {"email": "ex@mail.com", "password": "xxxx"}
@@ -38,4 +37,4 @@ To run this project, you need to do the following:
 The project includes functional and/or unit tests written in the PHPUnit framework to demonstrate how the various API endpoints behave in relation to each other. To run the tests, use the following command:
 
 ```bash
-php bin/phpunit
+php bin/phpunit 
